@@ -3,15 +3,16 @@
 Scripts for generating protein backbones, designing sequences, predicting structures,
 and quantitatively comparing the generated proteins against a set of reference toxins.
 
-Two parallel design pipelines are included and compared throughout:
+Three parallel design pipelines are included and compared throughout:
 
-- **PMPNN pipeline** — backbones from RFdiffusion, sequences from **ProteinMPNN**.
-- **ESM pipeline** — sequences from **ESM Inverse Folding / ESM2** (files suffixed `_ESM2`).
+- **PMPNN pipeline** - backbones from RFdiffusion, sequences from **ProteinMPNN**.
+- **ESM Inverse Folding pipeline** - backbones from RFdiffusion, sequences from **ESM Inverse Folding**.
+- **ESM-2 pipeline** - sequences from **ESM2** (files suffixed `_ESM2`).
 
-Most analysis scripts exist in both variants; the `_ESM2` version is the ESM-pipeline
-counterpart of the base (PMPNN) script and differs mainly in its input/output paths.
+Most analysis scripts exist in both variants; the `_ESM2` version is the ESM-2-pipeline
+counterpart of the base (PMPNN & ESM Inverse Folding) script and differs mainly in its input/output paths.
 
-> **Important — scripts shared across both pipelines:** The analysis and plotting
+> **Important: scripts shared across pipelines:** The analysis and plotting
 > scripts/notebooks **without** `ESM2` in their filename were used for **both** the
 > ProteinMPNN and the ESM Inverse Folding pipeline runs. The same code applies to
 > either pipeline — only the path(s) in the Configuration section need to be changed
