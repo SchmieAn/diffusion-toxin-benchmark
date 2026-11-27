@@ -1,0 +1,48 @@
+#!/bin/bash
+#SBATCH --job-name=colabfold_prediction      # Job name
+#SBATCH --output=log_colabfold_%j.out        # Output log file (%j = job ID)
+#SBATCH --ntasks=1                           # Number of tasks
+#SBATCH --time=00:30:00                      # Max run time (hh:mm:ss)
+#SBATCH --cpus-per-task=1                    # Number of CPU cores per task
+#SBATCH --mem=7G                             # Memory allocation
+#SBATCH --gres=gpu:1                         # Number of GPUs
+#SBATCH --partition=paula                    # Partition
+
+# ---------------------------------------------------------------------------
+# Configuration — edit these values to match your setup.
+# ---------------------------------------------------------------------------
+
+COLABFOLD_SCRIPT_NAME="colabfold.sh"                        # ColabFold runner script (expected next to this job script)
+SIF_IMAGE_NAME="colabfold_1.5.5-cuda12.2.2.sif"            # Singularity/Apptainer image (expected next to this job script)
+# ---------------------------------------------------------------------------
+
+# Resolve input file and output directory from array task arguments
+ALL_FILES=("$@")
+INPUT_FILE=${ALL_FILES[$SLURM_ARRAY_TASK_ID]}
+OUTPUT_DIR="${INPUT_FILE}-output"
+
+# Locate the directory containing this job script
+if [[ -n "$SLURM_JOB_ID" ]]; then
+    SCRIPT_PATH=$(scontrol show job "$SLURM_JOB_ID" | awk -F= '/Command=/{print $2}')
+else
+    SCRIPT_PATH=$(readlink -f "$0")
+fi
+SCRIPTDIR=$(dirname "$SCRIPT_PATH")
+
+RUN_SCRIPT="${SCRIPTDIR}/${COLABFOLD_SCRIPT_NAME}"
+SIF_IMAGE="${SCRIPTDIR}/${SIF_IMAGE_NAME}"
+
+# Validate that an input file was assigned to this task
+if [[ -z "${INPUT_FILE}" ]]; then
+    echo "Error: No input file for Task ID ${SLURM_ARRAY_TASK_ID}."
+    exit 1
+fi
+
+echo "Task ID:          ${SLURM_ARRAY_TASK_ID}"
+echo "Input file:       ${INPUT_FILE}"
+echo "Output directory: ${OUTPUT_DIR}"
+
+mkdir -p "${OUTPUT_DIR}"
+
+echo "Starting ColabFold prediction..."
+bash "${RUN_SCRIPT}" -i "${INPUT_FILE}" -o "${OUTPUT_DIR}"
