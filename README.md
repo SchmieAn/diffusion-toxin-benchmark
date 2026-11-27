@@ -15,15 +15,15 @@ counterpart of the base (PMPNN & ESM Inverse Folding) script and differs mainly 
 > **Important: scripts shared across pipelines:** The analysis and plotting
 > scripts/notebooks **without** `ESM2` in their filename were used for **both** the
 > ProteinMPNN and the ESM Inverse Folding pipeline runs. The same code applies to
-> either pipeline — only the path(s) in the Configuration section need to be changed
+> either pipeline, only the path(s) in the Configuration section need to be changed
 > to point at the respective pipeline's output directory. As a result, the path a
 > given script currently contains simply reflects whichever pipeline it was last run
 > on; switch it in the Configuration block to analyze the other. These shared scripts
 > carry a `Note:` in their header stating this. (The `start_esm_temp_*.py` and
-> `run_protein_mpnn.sh` generation scripts are the exception — each is specific to one
+> `run_protein_mpnn.sh` generation scripts are the exception. Each is specific to one
 > pipeline's sequence-design tool and is not interchangeable.)
 
-> ⚠️ **Note on reproduction:** These scripts were written for a specific study and
+> **Note on reproduction:** These scripts were written for a specific study and
 > hardcode a particular directory layout. They are shared for transparency and reuse,
 > **not** as a turnkey tool. You will need to adapt paths and input data to your own setup.
 
@@ -32,7 +32,7 @@ counterpart of the base (PMPNN & ESM Inverse Folding) script and differs mainly 
 ## Before you run anything: configuration
 
 Every script has a clearly marked **Configuration** block that gathers all the values
-you need to edit — directory paths, run numbers, input/output filenames, and key
+you need to edit: directory paths, run numbers, input/output filenames, and key
 parameters. In the Python scripts it looks like this and sits near the top of the file:
 
 ```python
@@ -59,11 +59,12 @@ not need to edit anything outside the Configuration block.
 ## Requirements
 
 - Python 3.x with `pandas`, `numpy`, `matplotlib`, `biopython` (for sequence/structure parsing)
-- [**RFdiffusion**](https://github.com/RosettaCommons/RFdiffusion) — backbone generation
-- [**ProteinMPNN**](https://github.com/dauparas/ProteinMPNN) — sequence design (PMPNN pipeline)
-- **ESM / ESM-2** (`fair-esm`) — sequence design (ESM pipeline)
-- [**ColabFold**](https://github.com/sokrypton/ColabFold) / AlphaFold — structure prediction
-- [**TM-align**](https://zhanggroup.org/TM-align/) — structural comparison (path set via `TMALIGN_PATH`)
+- [**RFdiffusion**](https://github.com/RosettaCommons/RFdiffusion) - backbone generation
+- [**ProteinMPNN**](https://github.com/dauparas/ProteinMPNN) - sequence design (PMPNN pipeline)
+- [**ESM Inverse Folding**] (https://github.com/Biohub/esm-archive/blob/main/examples/inverse_folding/README.md) - sequence design (ESM Inverse Folding pipeline)
+- [**ESM-2**] (https://github.com/Biohub/esm-archive#esmfold) - sequence design (ESM-2 pipeline)
+- [**ColabFold**](https://github.com/sokrypton/ColabFold) - structure prediction
+- [**TM-align**](https://zhanggroup.org/TM-align/) - structural comparison (path set via `TMALIGN_PATH`)
 
 > Please adjust and pin exact versions to match your environment.
 
@@ -72,8 +73,8 @@ not need to edit anything outside the Configuration block.
 ## Pipeline overview
 
 ```
-  RFdiffusion            ProteinMPNN / ESM            ColabFold / AlphaFold         Analysis & plots
- (backbones)      →      (sequences)          →       (predicted structures)   →   (similarity, TM, pLDDT)
+  RFdiffusion            ProteinMPNN / ESM Inverse Folding                  ColabFold                  Analysis & plots
+ (backbones)      →                (sequences)                →       (predicted structures)   →   (similarity, TM, pLDDT)
 ```
 
 ---
@@ -84,15 +85,16 @@ not need to edit anything outside the Configuration block.
 | Script | Purpose |
 |---|---|
 | `design_motifscaffolding.sh` | Motif-scaffolding design run |
-| `design_motifscaffolding_2.sh` | Motif-scaffolding design (second motif/target) |
+| `design_motifscaffolding_2.sh` | Motif-scaffolding design (toxin motif/target) |
 | `design_unconditional.sh` | Unconditional backbone generation |
 
 ### 2. Sequence design
 | Script | Purpose |
 |---|---|
 | `run_protein_mpnn.sh` | Run ProteinMPNN on generated backbones (PMPNN pipeline) |
-| `start_esm_temp_fixed_as.py` | ESM inverse folding — **iterative** masked sampling, fixed anchor residues |
-| `start_esm_temp_lose_as.py` | ESM inverse folding — **single-shot** sampling, loose anchor residues |
+| `submit_esm_header.sh` | Run ESM Inverse Folding on generated backbones (ESM Inverse Folding pipeline) |
+| `start_esm_temp_fixed_as.py` | ESM-2 — **iterative** masked sampling, fixed anchor residues |
+| `start_esm_temp_lose_as.py` | ESM-2 — **single-shot** sampling, loose anchor residues |
 
 ### 3. Structure prediction (ColabFold / AlphaFold)
 | Script | Purpose |
@@ -115,7 +117,7 @@ not need to edit anything outside the Configuration block.
 | Script | Purpose |
 |---|---|
 | `calc_tm.py` | Run TM-align over generated structures vs references → TM-score CSV |
-| `calc_tm_alphafold_output.py` / `_ESM2.py` | TM-align on AlphaFold/ColabFold-predicted structures → TM-score CSV |
+| `calc_tm_alphafold_output.py` / `_ESM2.py` | TM-align on ColabFold-predicted structures → TM-score CSV |
 | `calc_structure_similarity.py` / `_ESM2.py` | Report the fraction of structures meeting a TM-score threshold (prompts for the threshold) |
 
 ### 7. Plots & summary analysis
@@ -132,19 +134,12 @@ not need to edit anything outside the Configuration block.
 ## Typical workflow
 
 1. Generate backbones with the `design_*.sh` scripts (RFdiffusion).
-2. Design sequences with `run_protein_mpnn.sh` **or** the `start_esm_temp_*.py` scripts.
+2. Design sequences with `run_protein_mpnn.sh` / `submit_esm_header.sh` **or** use `start_esm_temp_*.py` scripts to generate sequences without diffusion.
 3. Split/cluster sequences with `fasta_file_split_cluster.py`.
 4. Predict structures with `run_colabfold.job` / `submit_colabworkaround.sh`.
 5. Compute comparisons: `sequence_comparison_proteins*.py` and `calc_tm*.py`.
 6. Summarise with `calc_sequence_similarity*.py` / `calc_structure_similarity*.py`
    (each prompts for a threshold) and generate plots from the notebooks.
-
-Example:
-
-```bash
-python calc_sequence_similarity.py
-# Threshold for Percent_Identity: 30
-```
 
 ---
 
@@ -152,12 +147,12 @@ python calc_sequence_similarity.py
 
 If you use these scripts, please cite:
 
-> _<add your paper / preprint reference here>_
+> _<Diffusion algorithms in protein design rarely propose known toxins: a benchmark on sequence and structure level>_
 
 ## License
 
-_<add a license, e.g. MIT, before publishing>_
+> _<MIT>_
 
 ## Contact
 
-Anne Schmieder — anne.schmieder@uni-leipzig.de
+Anne Schmieder — anne.schmieder@tu-dresden.de
