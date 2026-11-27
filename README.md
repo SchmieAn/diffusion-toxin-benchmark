@@ -146,12 +146,10 @@ not need to edit anything outside the Configuration block.
 ## Citation
 
 If you use these scripts, please cite:
-
-> _<Diffusion algorithms in protein design rarely propose known toxins: a benchmark on sequence and structure level>_
+Diffusion algorithms in protein design rarely propose known toxins: a benchmark on sequence and structure level
 
 ## License
-
-> _<MIT>_
+MIT
 
 ## Contact
 
