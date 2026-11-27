@@ -145,8 +145,9 @@ not need to edit anything outside the Configuration block.
 
 ## Citation
 
-If you use these scripts, please cite:
-Diffusion algorithms in protein design rarely propose known toxins: a benchmark on sequence and structure level
+If you use these scripts, please cite:  
+
+**Diffusion algorithms in protein design rarely propose known toxins: a benchmark on sequence and structure level**
 
 ## License
 MIT
